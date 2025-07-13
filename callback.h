@@ -1,5 +1,7 @@
 #pragma once
 
+#include "stat_assert.h"
+
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -9,13 +11,6 @@
 
 #define Ellipsis
 
-template <bool> //
-struct stat_assert;
-
-template <> //
-struct stat_assert<true> {
-  explicit stat_assert(char const *) {}
-};
 
 
 

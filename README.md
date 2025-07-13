@@ -10,6 +10,12 @@ the project with `-std=c++98`. I am not sure it is enough, though. It looks
 like either GCC and Clang don't enforce the standard properly or Rich Hickey is
 using a pre-98 standard.
 
+### `stat_assert`
+
+The language did not support `static_assert` so I had to implement one myself
+(which supports specifying a reason for failure as well). Have a look at header
+`stat_assert.h`, if you are interested.
+
 
 ### Functor
 

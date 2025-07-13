@@ -15,6 +15,9 @@ endif()
 
 add_executable(
     callback
+    # --
+    callback.h
+    stat_assert.h
     main.cpp)
 
 target_compile_options(callback PRIVATE "${COMPILE_OPTIONS}")
