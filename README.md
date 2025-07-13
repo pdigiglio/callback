@@ -74,3 +74,19 @@ In the current language the same result can be achieved by
 
 However, I am able to use constructor templates.
 
+
+## How to build the project
+
+If you are on `{z,ba}sh`, just run `setup_build.sh` to create `build_Debug`.
+This will also create a `compile_commands.json` file in the script directory:
+
+```sh
+sh setup_build.sh
+```
+
+To specify a compiler:
+
+```sh
+CXX=$(which clang++) CC=$(which clang) sh setup_build.sh
+```
+
