@@ -10,7 +10,7 @@ function main() {
     mkdir -p "$abs_buid_folder"
     cd "$abs_buid_folder"
     cmake "$script_folder" \
-        -DCMAKE_BUILD_TYPE="$abs_buid_folder" \
+        -DCMAKE_BUILD_TYPE="$buid_type" \
         -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
 
     typeset -r compile_db="compile_commands.json"
