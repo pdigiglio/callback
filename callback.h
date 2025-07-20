@@ -1,10 +1,22 @@
 #pragma once
 
+#include "Tag.h"
 #include "stat_assert.h"
 
 #include <cassert>
 #include <cstring>
 
+/**
+ * \brief Perform a bit copy of a valua into a buffer of bytes ensuring that
+ * the buffer is large enough (at compile time).
+ *
+ * \todo It would be nice to check the alignment as well (at runtime).
+ *
+ * \param value  The value to mem-copy from.
+ * \param buffer The buffer to mem-copy to.
+ *
+ * \return The number of bytes that were copied.
+ */
 template <unsigned N, typename T>
 unsigned copy_on_buffer(T const &value, char (&buffer)[N]) {
   static const unsigned valueSize = sizeof(value);
@@ -19,21 +31,32 @@ unsigned copy_on_buffer(T const &value, char (&buffer)[N]) {
 }
 
 /**
+ * \brief Base class for all Callback<> specialization.
  *
- * Since I have no variadic template in C++98, I factor out as much as the
+ * Since I have no variadic templates in C++98, I factor out as much as the
  * common functionality of Callback in this base class. If I could expand a
  * parameter pack, I could do all of this in Callback<>.
  */
 class CallbackBase {
 private:
+  /**
+   * \brief A dummy signature.
+   *
+   * I'll use this to declare dummy free and member function pointer pointer
+   * types later on.
+   */
   typedef void(DummySignature)();
 
   /**
    * \brief A function pointer type that I'll use as a reference.
    * \remark I am assuming that all the function pointers have the same length!
    */
-  // typedef void (*FuncPtr)();
   typedef DummySignature *FuncPtr;
+
+  /**
+   * \brief The type of a fuffer that stores _any_ function pointer.
+   * \remark I am assuming that all the function pointers have the same length!
+   */
   typedef char FuncPtrBuffer[sizeof(FuncPtr)];
 
   /**
@@ -43,12 +66,24 @@ private:
    * length! This doesn't appear to be true on MSVC.
    */
   typedef DummySignature CallbackBase::*MemFuncPtr;
+
+  /**
+   * \brief The type of a fuffer that stores _any_ member function pointer.
+   *
+   * \remark I am assuming that all the member function pointers have the same
+   * length! This doesn't appear to be true on MSVC.
+   */
   typedef char MemFuncPtrBuffer[sizeof(MemFuncPtr)];
 
 protected:
+  /** \brief Default ctor. Initializes an empty/unset callback. */
   explicit CallbackBase() //
       : _fAlign_(0), _callee(0) {}
 
+  /**
+   * \brief Ctor. Initializes the callback with a free function pointer.
+   * \param fptr The free function pointer to store.
+   */
   template <typename FPtr>
   explicit CallbackBase(FPtr *fptr) //
       : _fAlign_(0), _callee(0) {
@@ -56,6 +91,11 @@ protected:
     copy_on_buffer(fptr, _f);
   }
 
+  /**
+   * \brief Ctor. Initializes the callback with a member function pointer.
+   * \param callee  The target object.
+   * \param memFptr The member function pointer to store.
+   */
   template <typename C, typename U, typename FPtr>
   explicit CallbackBase(C &callee, FPtr U::*memFptr) //
       : _mfAlign_(0), _callee(static_cast<void *>(&callee)) {
@@ -63,6 +103,11 @@ protected:
     copy_on_buffer(memFptr, _mf);
   }
 
+  /**
+   * \brief Check if the callback was set with a free function pointer or
+   * with a (object, member function pointer) pair.
+   * \return `true` if the callback was set.
+   */
   bool isSet() const {
     if (_callee) {
       assert(_fAlign_);
@@ -72,6 +117,9 @@ protected:
     return _fAlign_;
   }
 
+  /**
+   * \brief The actual storage for the free or member function pointer.
+   */
   union {
     /** \brief The buffer for the function pointer. */
     FuncPtrBuffer _f;
@@ -92,44 +140,6 @@ protected:
 
 template <typename> //
 class Callback;
-
-// template <typename> //
-// struct CallbackTraits;
-//
-// template <typename SignatureT> //
-// struct CallbackTraits<Callback<SignatureT> > {
-//   /** \brief The type of the target signature. */
-//   typedef SignatureT Signature;
-//
-//   /** \brief The type of The Callback<> object. */
-//   typedef Callback<Signature> Self;
-//
-//   /**
-//    * \brief The type of a member function pointer with the same signature as
-//    * SignatureT as a member of this class.
-//    *
-//    * I'll use this type to reserve a buffer to store a member function pointer
-//    * address, assuming that _every_ member function pointer has the same size.
-//    */
-//   typedef Signature Self::*MyMemPtrType;
-//
-//   /**
-//    * \brief The type of a pointer to a free (or static member) function with
-//    * the same signature as SignatureT.
-//    */
-//   typedef Signature *FunctionPtr;
-//
-//   /**
-//    * \brief The type of the buffer for the member function pointer.
-//    */
-//   typedef char MemberPtrBuffer[sizeof(MyMemPtrType)];
-// };
-
-template <typename> //
-struct Tag {
-  /**\brief Ctor to avoid the most vexing parse. */
-  Tag(int) {}
-};
 
 template <typename R, typename Arg0> //
 class Callback<R(Arg0)> : protected CallbackBase {
